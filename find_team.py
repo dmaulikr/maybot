@@ -40,10 +40,19 @@ def filter_role(roles):
         print ("Invalid Input!")
         return
     load_data("find_team_users.txt")
-    data = list(map(lambda x: score_user(roles, x["roles"]), looking_users["users"]))
+    data = []
+    for user in looking_users["users"]:
+        user_roles = looking_users["users"][user]["roles"]
+        score = score_user(roles, user_roles)
+        timestamp = looking_users["users"][user]["timestamp"]
+        if score > 0:
+            data.append([user, score, timestamp, user_roles])
     print(data)
+    data = sorted(data, key=lambda user: (user[1], user[2]))
+    print(data)
+    return data
 
 #scores users based on how many matches
 def score_user(roles, user_roles):
-    score = reduce(lambda x,y: (y + 1) if (x in roles) else y, user_roles, 0)
+    score = reduce(lambda x,y: (x + 1) if (y in (role.lower() for role in roles)) else x, user_roles, 0)
     return score
