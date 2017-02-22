@@ -3,10 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="978e1ffa-5240-4124-aba7-005062457b7e" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/kik-bot-python-example" afterPath="$PROJECT_DIR$/test/kik-bot-python-example" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bot.py" afterPath="$PROJECT_DIR$/bot.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/recruiting_users.txt" afterPath="$PROJECT_DIR$/recruiting_users.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/user_modifier.py" afterPath="$PROJECT_DIR$/user_modifier.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -24,8 +21,8 @@
       <file leaf-file-name="bot.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/bot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="89" column="0" lean-forward="true" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="0" />
+            <state relative-caret-position="510">
+              <caret line="289" column="36" lean-forward="false" selection-start-line="289" selection-start-column="36" selection-end-line="289" selection-end-column="36" />
               <folding />
             </state>
           </provider>
@@ -85,6 +82,7 @@
       <find>self</find>
       <find>self.search</find>
       <find>roles</find>
+      <find>result</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -447,8 +445,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/bot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="149">
-          <caret line="89" column="0" lean-forward="true" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="0" />
+        <state relative-caret-position="510">
+          <caret line="289" column="36" lean-forward="false" selection-start-line="289" selection-start-column="36" selection-end-line="289" selection-end-column="36" />
           <folding />
         </state>
       </provider>

@@ -35,10 +35,10 @@ class KikBot(Flask):
     """ Flask kik bot application class"""
 
     positions = ["Front End", "Back End", "Android", "iOS", "Web Dev", "Hardware"]
-    roles = []
-    category = None
-    search = None
-    matched_user = None
+    roles = []           # POSITIONS/ROLES LOOKING TO FILL
+    category = None      # WHO YOU ARE SEARCHING FOR
+    search = None        # DETAILED OR QUICK SEARCH
+    matched_user = None  # WHO YOU ARE PAIRED WITH
 
     def __init__(self, kik_api, import_name, static_path=None, static_url_path=None, static_folder="static",
                  template_folder="templates", instance_path=None, instance_relative_config=False,
@@ -88,6 +88,7 @@ class KikBot(Flask):
                     self.search_type = info["search"]
                     self.matched_user = info["match"]
 
+                # START NEW CONVERSATION
                 if message_body.split()[0].lower() in ["hi", "hello"]:
                     self.roles = []
                     self.category = None
@@ -115,30 +116,9 @@ class KikBot(Flask):
                         # keyboards are a great way to provide a menu of options for a user to respond with!
                         keyboards=[
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
-                elif self.matched_user:
-                    if message_body == "Hook me up!":
-                        response_messages.append(TextMessage(
-                            to=self.matched_user,
-                            body="Hey, I'm " + message.from_user +
-                                 "!\nWould you like to join my dank ass team and disrupt industries?"))
-                    elif message_body == "Ew no":
-                        self.roles = []
-                        self.category = None
-                        self.search_type = None
-                        self.matched_user = None
-                        response_messages.append(TextMessage(
-                            to=self.matched_user,
-                            chat_id=message.chat_id,
-                            body="k thx bai"))
-                    else:
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Sorry, I didn't quite understand that. Would you like to contact " + username + "?",
-                            keyboards=[SuggestedResponseKeyboard(
-                                responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
 
-                elif not self.category and message_body in ["Team", "Member"]:
+                # SELECT CATEGORY: TEAM OR MEMBER
+                elif not self.category:
                     if message_body == "Team":
                         self.category = "team"
                         response_messages.append(TextMessage(
@@ -165,146 +145,44 @@ class KikBot(Flask):
                             # keyboards are a great way to provide a menu of options for a user to respond with!
                             keyboards=[
                                 SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
-
-
-                # if looking for member
-                elif not self.search_type and self.category == "member":
-                    if "quick" in message_body.lower():
-                        self.search_type = "quick"
-                    elif "detail" in message_body.lower():
-                        self.search_type = "detailed"
-                    else:
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Sorry, I didn't quite understand that."))
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Quick Search or Detailed Search?",
-                            # keyboards are a great way to provide a menu of options for a user to respond with!
-                            keyboards=[
-                                SuggestedResponseKeyboard(
-                                    responses=[TextResponse("<3 Quickies"), TextResponse("Mmmm details")])]))
-                        continue
-                    response_messages.append(TextMessage(
-                        to=message.from_user,
-                        chat_id=message.chat_id,
-                        body="Cool! What roles are you looking to fill?",
-                        keyboards=[SuggestedResponseKeyboard(
-                            responses=list(map(lambda x: TextResponse(x), self.positions)))]))
-
-                elif self.category:
-                    if message_body in self.positions:
-                        if message_body not in self.roles: self.roles.append(message_body)
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="You are currently looking for roles in: " + ", ".join(self.roles),
-                            keyboards=[SuggestedResponseKeyboard(
-                                responses=[TextResponse("Moar roles pls"), TextResponse("I'm good")])]
-                        ))
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Are you looking for anymore roles to fill?",
-                            keyboards=[SuggestedResponseKeyboard(
-                                responses=[TextResponse("Moar roles pls"), TextResponse("I'm good")])]
-                        ))
-
-                    # looking for more roles
-                    elif message_body == "Moar roles pls":
+                # LOOKING FOR MEMBERS
+                elif self.category == "member":
+                    # SELECT SEARCH TYPE: DETAILED OR QUICK
+                    if not self.search_type:
+                        if "quick" in message_body.lower():
+                            self.search_type = "quick"
+                        elif "detail" in message_body.lower():
+                            self.search_type = "detailed"
+                        else:
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="Sorry, I didn't quite understand that."))
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="Quick Search or Detailed Search?",
+                                # keyboards are a great way to provide a menu of options for a user to respond with!
+                                keyboards=[
+                                    SuggestedResponseKeyboard(
+                                        responses=[TextResponse("<3 Quickies"), TextResponse("Mmmm details")])]))
+                            continue
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
                             body="Cool! What roles are you looking to fill?",
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
-
-                    # no more roles
-                    elif message_body == "I'm good":
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Cool! Searching for team member..." if (self.category == "team")
-                            else "Cool! Searching for a team..."
-                        ))
-
-                        # quick search
-                        if self.search_type == "quick":
-                            result = find_team.filter_role(self.roles)
-                            if len(result) > 0:
-                                result = result[0]
-                                username = result[0]
-                                matched_user = self.kik_api.get_user(username)
-                                self.matched_user = username
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body="You have a match!"
-                                ))
-                                response_messages += self.get_profile(matched_user, message, result[3])
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body="Would you like to contact " + username + "?",
-                                    keyboards=[SuggestedResponseKeyboard(
-                                        responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
-                            else:
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body="Sorry, no matches found!"
-                                ))
-                        # detailed search
-                        else:
-                            results = find_team.filter_role(self.roles)
-                            print(results)
-                            if len(results) > 0:
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body="Potential Team Members found!"
-                                ))
-                                output_msg = ""
-                                for user in results:
-                                    print(user)
-                                    output_msg += "User: " + user[0] + "\n"
-                                    output_msg += "Looking to fill: " + ", ".join(user[3]) + "\n"
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body=output_msg
-                                ))
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body="Who would you like to contact?",
-                                    keyboards=[SuggestedResponseKeyboard(
-                                        responses=list(map(lambda x: TextResponse("I want " + x[0]), results)))]))
-
-                            else:
-                                response_messages.append(TextMessage(
-                                    to=message.from_user,
-                                    chat_id=message.chat_id,
-                                    body="Sorry, not matches found!"
-                                ))
-                    elif "I want " in message_body:
-                        string = message_body.replace("I want ", "")
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Contacting " + string))
-                    else:
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Sorry, I didn't quite understand that."))
-                        if len(self.roles) > 0:
+                    elif not self.matched_user:
+                        # CHOOSE ROLES
+                        if message_body in self.positions:
+                            if message_body not in self.roles: self.roles.append(message_body)
                             response_messages.append(TextMessage(
                                 to=message.from_user,
                                 chat_id=message.chat_id,
-                                body="You are currently looking for roles in: " + ", ".join(self.roles)
+                                body="You are currently looking for roles in: " + ", ".join(self.roles),
+                                keyboards=[SuggestedResponseKeyboard(
+                                    responses=[TextResponse("Moar roles pls"), TextResponse("I'm good")])]
                             ))
                             response_messages.append(TextMessage(
                                 to=message.from_user,
@@ -313,22 +191,114 @@ class KikBot(Flask):
                                 keyboards=[SuggestedResponseKeyboard(
                                     responses=[TextResponse("Moar roles pls"), TextResponse("I'm good")])]
                             ))
-                        else:
+                        # LOOKING FOR MORE ROLES
+                        elif message_body == "Moar roles pls":
                             response_messages.append(TextMessage(
                                 to=message.from_user,
                                 chat_id=message.chat_id,
-                                body="What roles are you looking to fill?",
+                                body="Cool! What roles are you looking to fill?",
                                 keyboards=[SuggestedResponseKeyboard(
                                     responses=list(map(lambda x: TextResponse(x), self.positions)))]))
-                elif message_body.lower() == "profile":
-                    # Send the user a response along with their profile picture (function definition is below)
-                    response_messages += self.get_profile(user, message)
-
-                elif message_body in ["no thanks", "no thank you"]:
+                        # SEARCH FOR MATCH
+                        elif message_body == "I'm good":
+                            result = find_team.filter_role(self.roles)
+                            # IF MATCH FOUND
+                            if len(result) > 0:
+                                # QUICK SEARCH
+                                if self.search_type == "quick":
+                                    result = result[0]
+                                    username = result[0]
+                                    matched_user = self.kik_api.get_user(username)
+                                    self.matched_user = username
+                                    response_messages.append(TextMessage(
+                                        to=message.from_user,
+                                        chat_id=message.chat_id,
+                                        body="You have a match!"
+                                    ))
+                                    response_messages += self.get_profile(matched_user, message, result[3])
+                                    response_messages.append(TextMessage(
+                                        to=message.from_user,
+                                        chat_id=message.chat_id,
+                                        body="Would you like to contact " + username + "?",
+                                        keyboards=[SuggestedResponseKeyboard(
+                                            responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
+                                # DETAILED SEARCH
+                                else:
+                                    self.matched_user = result
+                                    response_messages.append(TextMessage(
+                                        to=message.from_user,
+                                        chat_id=message.chat_id,
+                                        body="Potential Team Members found!"
+                                    ))
+                                    output_msg = ""
+                                    for user in result:
+                                        output_msg += "User: " + user[0] + "\n"
+                                        output_msg += "Looking to fill: " + ", ".join(user[3]) + "\n"
+                                    response_messages.append(TextMessage(
+                                        to=message.from_user,
+                                        chat_id=message.chat_id,
+                                        body=output_msg
+                                    ))
+                                    response_messages.append(TextMessage(
+                                        to=message.from_user,
+                                        chat_id=message.chat_id,
+                                        body="Who would you like to contact?",
+                                        keyboards=[SuggestedResponseKeyboard(
+                                            responses=list(map(lambda x: TextResponse("I want " + x[0]), result)))]))
+                            # NO MATCHES FOUND!
+                            else:
+                                response_messages.append(TextMessage(
+                                    to=message.from_user,
+                                    chat_id=message.chat_id,
+                                    body="Sorry, not matches found!"
+                                ))
+                    # QUICK MATCH WITH SINGLE USER
+                    elif message_body == "Hook me up!":
+                        response_messages.append(TextMessage(
+                            to=self.matched_user,
+                            body="Hey, I'm " + message.from_user +
+                                 "!\nWould you like to join my dank ass team and disrupt industries?"))
+                    # DECLINE MATCH
+                    elif message_body == "Ew no":
+                        self.roles = []
+                        self.category = None
+                        self.search_type = None
+                        self.matched_user = None
+                        response_messages.append(TextMessage(
+                            to=self.matched_user,
+                            chat_id=message.chat_id,
+                            body="k thx bai"))
+                    # DETAILED MATCH WITH LIST OF USERS
+                    elif "I want " in message_body:
+                        self.matched_user = message_body.replace("I want ", "")
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Contacting " + self.matched_user))
+                        response_messages.append(TextMessage(
+                            to=self.matched_user,
+                            body="Hey, I'm " + message.from_user +
+                                 "!\nWould you like to join my dank ass team and disrupt industries?"))
+                    # INCORRECT INPUT
+                    else:
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Sorry, I didn't quite understand that. Would you like to contact " + username + "?",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
+                # LOOKING FOR A TEAM
+                elif self.category == "team":
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
-                        body="Ok, {}. Chat with me again if you change your mind.".format(user.first_name)))
+                        body="Cool! What roles are you looking to fill?",
+                        keyboards=[SuggestedResponseKeyboard(
+                            responses=list(map(lambda x: TextResponse(x), self.positions)))]))
+
+                elif message_body.lower() == "profile":
+                    # Send the user a response along with their profile picture (function definition is below)
+                    response_messages += self.get_profile(user, message)
                 else:
                     response_messages.append(TextMessage(
                         to=message.from_user,
