@@ -13,15 +13,12 @@ def write_data(data, database_name):
     with open(database_name, 'w') as outfile:
         json.dump(data, outfile)
 
-def put_roles(username, roles, looking, search, match):
+def put_info(username, roles, looking, search, match):
     recruiting = load_data(FIND_MEMBERS)
 
-    if (username not in recruiting["users"]):
+    if username not in recruiting["users"]:
         recruiting["users"][username] = {}
-        recruiting["users"][username]["roles"] = roles
-    else:
-        if (recruiting["users"][username]["roles"]): recruiting["users"][username]["roles"].append(roles)
-        else: recruiting["users"][username]["roles"] = roles
+    recruiting["users"][username]["roles"] = roles
     recruiting["users"][username]["looking"] = looking
     recruiting["users"][username]["search"] = search
     recruiting["users"][username]["match"] = match
@@ -29,7 +26,7 @@ def put_roles(username, roles, looking, search, match):
     
 def get_info(username):
     recruiting = load_data(FIND_MEMBERS)
-    if (username in recruiting["users"]):
+    if username in recruiting["users"]:
         return recruiting["users"][username]
     else: return None
     
