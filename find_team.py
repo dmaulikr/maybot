@@ -47,9 +47,7 @@ def filter_role(roles):
         timestamp = looking_users["users"][user]["timestamp"]
         if score > 0:
             data.append([user, score, timestamp, user_roles])
-    print(data)
-    data = sorted(data, key=lambda user: (user[1], user[2]))
-    print(data)
+    data = sorted(data, key=lambda user: (user[1] * (-1), user[2]))
     return data
 
 #scores users based on how many matches
