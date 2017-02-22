@@ -35,10 +35,6 @@ class KikBot(Flask):
     """ Flask kik bot application class"""
 
     positions = ["Front End", "Back End", "Android", "iOS", "Web Dev", "Hardware"]
-    roles = []           # POSITIONS/ROLES LOOKING TO FILL
-    category = None      # WHO YOU ARE SEARCHING FOR
-    search = None        # DETAILED OR QUICK SEARCH
-    matched_user = None  # WHO YOU ARE PAIRED WITH
 
     def __init__(self, kik_api, import_name, static_path=None, static_url_path=None, static_folder="static",
                  template_folder="templates", instance_path=None, instance_relative_config=False,
@@ -64,6 +60,11 @@ class KikBot(Flask):
         messages = messages_from_json(request.json["messages"])
         response_messages = []
 
+        roles = []  # POSITIONS/ROLES LOOKING TO FILL
+        category = None  # WHO YOU ARE SEARCHING FOR
+        search = None  # DETAILED OR QUICK SEARCH
+        matched_user = None  # WHO YOU ARE PAIRED WITH
+
         for message in messages:
             user = self.kik_api.get_user(message.from_user)
 
@@ -83,17 +84,17 @@ class KikBot(Flask):
 
                 info = user_modifier.get_info(message.from_user)
                 if info:
-                    self.roles = info["roles"]
-                    self.category = info["looking"]
-                    self.search_type = info["search"]
-                    self.matched_user = info["match"]
+                    roles = info["roles"]
+                    category = info["looking"]
+                    search_type = info["search"]
+                    matched_user = info["match"]
 
                 # START NEW CONVERSATION
                 if message_body.split()[0].lower() in ["hi", "hello"]:
-                    self.roles = []
-                    self.category = None
-                    self.search_type = None
-                    self.matched_user = None
+                    roles = []
+                    category = None
+                    search_type = None
+                    matched_user = None
 
                     response_messages.append(TextMessage(
                         to=message.from_user,
@@ -118,9 +119,9 @@ class KikBot(Flask):
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
 
                 # SELECT CATEGORY: TEAM OR MEMBER
-                elif not self.category:
+                elif not category:
                     if message_body == "Team":
-                        self.category = "team"
+                        category = "team"
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
@@ -128,7 +129,7 @@ class KikBot(Flask):
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
                     elif message_body == "Member":
-                        self.category = "member"
+                        category = "member"
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
@@ -146,13 +147,13 @@ class KikBot(Flask):
                             keyboards=[
                                 SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
                 # LOOKING FOR MEMBERS
-                elif self.category == "member":
+                elif category == "member":
                     # SELECT SEARCH TYPE: DETAILED OR QUICK
-                    if not self.search_type:
+                    if not search_type:
                         if "quick" in message_body.lower():
-                            self.search_type = "quick"
+                            search_type = "quick"
                         elif "detail" in message_body.lower():
-                            self.search_type = "detailed"
+                            search_type = "detailed"
                         else:
                             response_messages.append(TextMessage(
                                 to=message.from_user,
@@ -173,14 +174,15 @@ class KikBot(Flask):
                             body="Cool! What roles are you looking to fill?",
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
-                    elif not self.matched_user:
+                    elif not matched_user:
                         # CHOOSE ROLES
                         if message_body in self.positions:
-                            if message_body not in self.roles: self.roles.append(message_body)
+                            if message_body not in roles:
+                                roles.append(message_body)
                             response_messages.append(TextMessage(
                                 to=message.from_user,
                                 chat_id=message.chat_id,
-                                body="You are currently looking for roles in: " + ", ".join(self.roles),
+                                body="You are currently looking for roles in: " + ", ".join(roles),
                                 keyboards=[SuggestedResponseKeyboard(
                                     responses=[TextResponse("Moar roles pls"), TextResponse("I'm good")])]
                             ))
@@ -201,15 +203,15 @@ class KikBot(Flask):
                                     responses=list(map(lambda x: TextResponse(x), self.positions)))]))
                         # SEARCH FOR MATCH
                         elif message_body == "I'm good":
-                            result = find_team.filter_role(self.roles)
+                            result = find_team.filter_role(roles)
                             # IF MATCH FOUND
                             if len(result) > 0:
                                 # QUICK SEARCH
-                                if self.search_type == "quick":
+                                if search_type == "quick":
                                     result = result[0]
                                     username = result[0]
                                     matched_user = self.kik_api.get_user(username)
-                                    self.matched_user = username
+                                    matched_user = username
                                     response_messages.append(TextMessage(
                                         to=message.from_user,
                                         chat_id=message.chat_id,
@@ -224,7 +226,7 @@ class KikBot(Flask):
                                             responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
                                 # DETAILED SEARCH
                                 else:
-                                    self.matched_user = result
+                                    matched_user = result
                                     response_messages.append(TextMessage(
                                         to=message.from_user,
                                         chat_id=message.chat_id,
@@ -255,28 +257,28 @@ class KikBot(Flask):
                     # QUICK MATCH WITH SINGLE USER
                     elif message_body == "Hook me up!":
                         response_messages.append(TextMessage(
-                            to=self.matched_user,
+                            to=matched_user,
                             body="Hey, I'm " + message.from_user +
                                  "!\nWould you like to join my dank ass team and disrupt industries?"))
                     # DECLINE MATCH
                     elif message_body == "Ew no":
-                        self.roles = []
-                        self.category = None
-                        self.search_type = None
-                        self.matched_user = None
+                        roles = []
+                        category = None
+                        search_type = None
+                        matched_user = None
                         response_messages.append(TextMessage(
-                            to=self.matched_user,
+                            to=matched_user,
                             chat_id=message.chat_id,
                             body="k thx bai"))
                     # DETAILED MATCH WITH LIST OF USERS
                     elif "I want " in message_body:
-                        self.matched_user = message_body.replace("I want ", "")
+                        matched_user = message_body.replace("I want ", "")
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
-                            body="Contacting " + self.matched_user))
+                            body="Contacting " + matched_user))
                         response_messages.append(TextMessage(
-                            to=self.matched_user,
+                            to=matched_user,
                             body="Hey, I'm " + message.from_user +
                                  "!\nWould you like to join my dank ass team and disrupt industries?"))
                     # INCORRECT INPUT
@@ -288,7 +290,7 @@ class KikBot(Flask):
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
                 # LOOKING FOR A TEAM
-                elif self.category == "team":
+                elif category == "team":
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
@@ -307,8 +309,7 @@ class KikBot(Flask):
                         # keyboards are a great way to provide a menu of options for a user to respond with!
                         keyboards=[
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
-                user_modifier.put_info(message.from_user, self.roles, self.category, self.search_type,
-                                       self.matched_user)
+                user_modifier.put_info(message.from_user, roles, category, search_type, matched_user)
 
             # If its not a text message, give them another chance to use the suggested responses
             else:

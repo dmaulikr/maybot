@@ -1,1 +1,1 @@
-{"users": {"pratty": {"looking": "", "search": "", "match": "", "roles": []}, "raphaelkoh": {"looking": "member", "search": null, "match": null, "roles": []}}}
+{"users": {"pratty": {"looking": "", "search": "", "match": "", "roles": []}, "raphaelkoh": {"looking": "member", "search": "detailed", "match": "raphaelkoh", "roles": ["Front End", "Android"]}}}
