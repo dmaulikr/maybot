@@ -83,9 +83,13 @@ class KikBot(Flask):
                 user = self.kik_api.get_user(message.from_user)
                 message_body = message.body
 
+                # IF USER IS TO BE REMOVED FROM ACTIVE USERS
+                remove = False
+
                 info = user_modifier.get_info(message.from_user)
                 if info:
                     roles = info["roles"]
+                    skills = info["skills"]
                     category = info["looking"]
                     search_type = info["search"]
                     matched_user = info["match"]
@@ -93,6 +97,7 @@ class KikBot(Flask):
                 # START NEW CONVERSATION
                 if message_body.split()[0].lower() in ["hi", "hello"]:
                     roles = []
+                    skills = []
                     category = None
                     search_type = None
                     matched_user = None
@@ -118,7 +123,14 @@ class KikBot(Flask):
                         # keyboards are a great way to provide a menu of options for a user to respond with!
                         keyboards=[
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                # END CONVERSATION
+                elif "bye" in message_body.lower():
+                    remove = True
 
+                    response_messages.append(TextMessage(
+                        to=message.from_user,
+                        chat_id=message.chat_id,
+                        body="k thx bai"))
                 # SELECT CATEGORY: TEAM OR MEMBER
                 elif not category:
                     if message_body == "Team":
@@ -266,10 +278,8 @@ class KikBot(Flask):
 
                     # DECLINE MATCH
                     elif message_body == "Ew no":
-                        roles = []
-                        category = None
-                        search_type = None
-                        matched_user = None
+                        remove = True
+
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
@@ -322,8 +332,47 @@ class KikBot(Flask):
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
                     # SEARCH FOR MATCH
-                    elif message_body == "I'm good":
-                        print("hi")
+                    elif message_body in ["I'm good", "Of course"]:
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Nice!  What skills do you have? (i.e. languages, frameworks)"))
+                    # GET PROFICIENCY LEVEL
+                    elif message_body.isdigit():
+                        skills[-1][1] = int(message_body)
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Your skills include: " + ", ".join(elem[0] for elem in skills) +
+                                 "\nDo you have any more skills?",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("Of course"), TextResponse("Nah I'm good")])]
+                        ))
+                    # ADD USER TO DATA
+                    elif message_body == "Nah I'm good":
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Right on!  You are now single ready to mingle!\nYou will be notified if you are matched!"
+                        ))
+                        find_team.new_user(message.from_user, user.first_name + " " + user.last_name, roles, skills)
+                        remove = True
+                    # ADD SKILLS
+                    elif len(roles) > 0:
+                        skills = list(filter(lambda x: x != message_body, skills))
+                        skills.append([message_body.strip(), 0])
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="How proficient are you with " + message_body + " on a scale from 1 to 5?",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("1"), TextResponse("2"), TextResponse("3"),
+                                           TextResponse("4"), TextResponse("5")])]))
+                        '''
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("⭐"), TextResponse("⭐⭐"), TextResponse("⭐⭐⭐"),
+                                           TextResponse("⭐⭐⭐⭐"), TextResponse("⭐⭐⭐⭐⭐")])]))
+                            '''
                 elif message_body.lower() == "profile":
                     # Send the user a response along with their profile picture (function definition is below)
                     response_messages += self.get_profile(user, message)
@@ -335,7 +384,10 @@ class KikBot(Flask):
                         # keyboards are a great way to provide a menu of options for a user to respond with!
                         keyboards=[
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
-                user_modifier.put_info(message.from_user, roles, category, search_type, matched_user)
+                if remove:
+                    user_modifier.remove_user(message.from_user)
+                else:
+                    user_modifier.put_info(message.from_user, roles, category, search_type, matched_user, skills)
 
             # If its not a text message, give them another chance to use the suggested responses
             else:

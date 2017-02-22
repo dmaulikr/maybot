@@ -59,5 +59,11 @@ def filter_role(roles):
 
 # scores users based on how many matches
 def score_user(roles, user_roles):
-    score = reduce(lambda x, y: (x + 1) if (y in (role.lower() for role in roles)) else x, user_roles, 0)
+    score = reduce(lambda x, y: (x + 1) if (y.lower() in (role.lower() for role in roles)) else x, user_roles, 0)
     return score
+
+def remove_user(username):
+    data = load_data(FIND_TEAM)
+    if username in data["users"]:
+        del data["users"][username]
+    write_data(data, FIND_TEAM)

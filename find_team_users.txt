@@ -1,16 +1,26 @@
 {"users":
-    {"raphaelkoh":
-        {"name": "Raphael Koh",
-         "timestamp": 1487446092.603366,
-         "roles": ["front end", "android", "physics"],
-         "skills": {"python": 2, "node.js": 4, "C++": 1}},
-     "pratty":
-        {"name": "Pratyush Pal",
+    {"pratty":
+        {"skills":
+            {"python": 2,
+            "node.js": 4,
+            "C++": 1},
          "timestamp": 1487546092.603366,
-         "roles": ["front end", "android", "physics"],
-         "skills": {"python": 2, "node.js": 4, "C++": 1}},
-     "clayparade":
-        {"name": "Clayton Halim",
+         "name": "Pratyush Pal",
+         "roles": ["front end", "android", "physics"]},
+      "raphaelkoh":
+        {"skills":
+            {"python": 2, "node.js": 4, "C++": 1},
+         "timestamp": 1487446092.603366,
+         "name": "Raphael Koh",
+         "roles": ["front end", "android", "physics"]},
+      "clayparade":
+        {"skills":
+            {"Python": 5, "R": 2, "SQL": 3},
          "timestamp": 1487446791.069449,
-         "skills": {"Python": 5, "R": 2, "SQL": 3},
-         "roles": ["android", "back end", "machine learning"]}}}
+         "name": "Clayton Halim",
+         "roles": ["android", "back end", "machine learning"]}},
+      "raphaelkoh":
+        {"skills": [["Python", 4], ["Node.js", 5], ["Java", 5]],
+        "timestamp": 1487744965.502,
+        "name": "Raphael Koh",
+        "roles": ["Front End", "Back End", "Android"]}}
