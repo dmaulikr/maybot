@@ -1,7 +1,28 @@
 import json
 import time
 
-looking_users = {}
+FIND_TEAM = "find_team_users.txt"
+
+
+def load_data(database_name):
+    """Loads data from database"""
+    with open(database_name, 'r') as infile:
+        data = json.load(infile)
+    return data
+
+
+def write_data(data, database_name):
+    with open(database_name, 'w') as outfile:
+        json.dump(data, outfile)
+
+
+def get_info(username):
+    data = load_data(FIND_TEAM)
+    if username in data["users"]:
+        return data["users"][username]
+    else:
+        return None
+
 
 def new_user(username, name, roles, skills):
     """Inserts a new user into the database
@@ -12,45 +33,31 @@ def new_user(username, name, roles, skills):
     roles -- list of interested roles
     skills -- dictionary of skills and their level from 1 to 5 as an integer
     """
-    
-    looking_users[username] = {'timestamp': time.time(),
-                               "name": name, 
-                               "roles": roles, 
-                               "skills": skills}
+    data = load_data(FIND_TEAM)
+    data[username] = {'timestamp': time.time(),
+                      "name": name,
+                      "roles": roles,
+                      "skills": skills}
+    write_data(data, FIND_TEAM)
 
-    with open('data.txt', 'w') as outfile:
-        json.dumps(looking_users, outfile)
-
-def load_data(database_name):
-    """Loads data from database"""
-    global looking_users
-    with open(database_name, 'r') as infile:
-        looking_users = json.load(infile)
-        
-def get_user(username):
-    """Returns a user's data
-    
-    Keyword Arguments:
-    username -- user's username as a string"""
-
-    return looking_users["users"][username]
 
 def filter_role(roles):
     if not isinstance(roles, list):
         print ("Invalid Input!")
         return
-    load_data("find_team_users.txt")
-    data = []
-    for user in looking_users["users"]:
-        user_roles = looking_users["users"][user]["roles"]
+    data = load_data(FIND_TEAM)
+    matches = []
+    for user in data["users"]:
+        user_roles = data["users"][user]["roles"]
         score = score_user(roles, user_roles)
-        timestamp = looking_users["users"][user]["timestamp"]
+        timestamp = data["users"][user]["timestamp"]
         if score > 0:
-            data.append([user, score, timestamp, user_roles])
-    data = sorted(data, key=lambda user: (user[1] * (-1), user[2]))
-    return data
+            matches.append([user, score, timestamp, user_roles])
+    matches = sorted(matches, key=lambda match: (match[1] * (-1), match[2]))
+    return matches
 
-#scores users based on how many matches
+
+# scores users based on how many matches
 def score_user(roles, user_roles):
-    score = reduce(lambda x,y: (x + 1) if (y in (role.lower() for role in roles)) else x, user_roles, 0)
+    score = reduce(lambda x, y: (x + 1) if (y in (role.lower() for role in roles)) else x, user_roles, 0)
     return score
