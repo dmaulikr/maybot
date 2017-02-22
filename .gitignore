@@ -1,4 +1,4 @@
-.exe
+*.exe
 env
 .idea/*
 test/*
