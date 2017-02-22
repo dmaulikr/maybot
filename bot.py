@@ -61,8 +61,9 @@ class KikBot(Flask):
         response_messages = []
 
         roles = []  # POSITIONS/ROLES LOOKING TO FILL
+        skills = []  # SKILLS USER HAS (i.e. languages, frameworks)
         category = None  # WHO YOU ARE SEARCHING FOR
-        search = None  # DETAILED OR QUICK SEARCH
+        search_type = None  # DETAILED OR QUICK SEARCH
         matched_user = None  # WHO YOU ARE PAIRED WITH
 
         for message in messages:
