@@ -209,6 +209,15 @@ class KikBot(Flask):
                             body="Cool! What roles are you looking to fill?",
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
+                    # POST TEAM IN DB
+                    elif message_body == "Yes please":
+                        skills = ["temp"]
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Key in all skills (i.e. languages or frameworks) you are looking for! Separate each skills with ','!",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("No skills needed")])]))
                     elif not matched_user:
                         # CHOOSE ROLES
                         if message_body in self.positions:
@@ -305,15 +314,6 @@ class KikBot(Flask):
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=[TextResponse("Yes please"),
                                            TextResponse("We'll find one without you </3")])]))
-                    # POST TEAM IN DB
-                    elif message_body == "Yes please":
-                        skills = ["temp"]
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Key in all skills (i.e. languages or frameworks) you are looking for! Separate each skills with ','!",
-                            keyboards=[SuggestedResponseKeyboard(
-                                responses=[TextResponse("No skills needed")])]))
                     # INPUT SKILLS
                     elif len(skills) > 0:
                         if message_body == "No skills needed":
