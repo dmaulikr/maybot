@@ -1,1 +1,1 @@
-{"users": {"clayparade": {"looking": "member", "skills": [], "search": "quick", "roles": ["Front End", "Back End", "Android"], "match": "raphaelkoh"}}}
+{"users": {"clayparade": {"looking": "member", "skills": [], "search": "quick", "match": "raphaelkoh", "roles": ["Front End", "Back End", "Android"]}}}

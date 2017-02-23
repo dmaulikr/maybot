@@ -53,7 +53,7 @@ def filter_role(roles):
     matches = []
     for user in data["users"]:
         user_roles = data["users"][user]["roles"]
-        user_skills =data["users"][user]["skills"]
+        user_skills = data["users"][user]["skills"]
         score = score_user(roles, user_roles)
         timestamp = data["users"][user]["timestamp"]
         if score > 0:
