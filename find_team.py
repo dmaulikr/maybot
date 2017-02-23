@@ -53,10 +53,11 @@ def filter_role(roles):
     matches = []
     for user in data["users"]:
         user_roles = data["users"][user]["roles"]
+        user_skills =data["users"][user]["skills"]
         score = score_user(roles, user_roles)
         timestamp = data["users"][user]["timestamp"]
         if score > 0:
-            matches.append([user, score, timestamp, user_roles])
+            matches.append([user, score, timestamp, user_roles, user_skills])
     matches = sorted(matches, key=lambda match: (match[1] * (-1), match[2]))
     return matches
 
