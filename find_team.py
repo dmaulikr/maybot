@@ -38,7 +38,7 @@ def new_user(username, name, roles, skills):
     skills -- dictionary of skills and their level from 1 to 5 as an integer
     """
     data = load_data(FIND_TEAM)
-    data[username] = {'timestamp': time.time(),
+    data["users"][username] = {'timestamp': time.time(),
                       "name": name,
                       "roles": roles,
                       "skills": skills}
@@ -65,6 +65,7 @@ def filter_role(roles):
 def score_user(roles, user_roles):
     score = reduce(lambda x, y: (x + 1) if (y.lower() in (role.lower() for role in roles)) else x, user_roles, 0)
     return score
+
 
 def remove_user(username):
     data = load_data(FIND_TEAM)

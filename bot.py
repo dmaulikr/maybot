@@ -142,7 +142,7 @@ class KikBot(Flask):
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
                 elif "remove" in message_body.lower():
                     remove = True
-                    if category == "member":
+                    if find_team.get_info(message.from_user):
                         find_team.remove_user(message.from_user)
                     response_messages.append(TextMessage(
                         to=message.from_user,

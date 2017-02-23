@@ -20,25 +20,25 @@ def write_data(data, database_name):
 
 
 def put_info(username, roles, skills):
-    recruiting = load_data(FIND_MEMBERS)
+    data = load_data(FIND_MEMBERS)
 
-    if username not in recruiting["users"]:
-        recruiting["users"][username] = {}
-    recruiting["users"][username]["roles"] = roles
-    recruiting["users"][username]["skills"] = skills
-    write_data(recruiting, FIND_MEMBERS)
+    if username not in data["users"]:
+        data["users"][username] = {}
+    data["users"][username]["roles"] = roles
+    data["users"][username]["skills"] = skills
+    write_data(data, FIND_MEMBERS)
 
 
 def get_info(username):
-    recruiting = load_data(FIND_MEMBERS)
-    if username in recruiting["users"]:
-        return recruiting["users"][username]
+    data = load_data(FIND_MEMBERS)
+    if username in data["users"]:
+        return data["users"][username]
     else:
         return None
 
 
 def remove_user(username):
-    recruiting = load_data(FIND_MEMBERS)
-    if username in recruiting["users"]:
-        del recruiting["users"][username]
-    write_data(recruiting, FIND_MEMBERS)
+    data = load_data(FIND_MEMBERS)
+    if username in data["users"]:
+        del data["users"][username]
+    write_data(data, FIND_MEMBERS)
