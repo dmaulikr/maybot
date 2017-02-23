@@ -1,1 +1,8 @@
-{"users": {"pratty": {"roles": [], "skills": []}}}
+{
+    "users": {
+        "pratty": {
+            "roles": [],
+            "skills": []
+        }
+    }
+}
