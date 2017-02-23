@@ -27,7 +27,7 @@ from kik import KikApi, Configuration
 from kik.messages import messages_from_json, TextMessage, PictureMessage, \
     SuggestedResponseKeyboard, TextResponse, StartChattingMessage
 import find_team
-import user_modifier
+import active_users
 import json
 
 
@@ -86,7 +86,7 @@ class KikBot(Flask):
                 # IF USER IS TO BE REMOVED FROM ACTIVE USERS
                 remove = False
 
-                info = user_modifier.get_info(message.from_user)
+                info = active_users.get_info(message.from_user)
                 if info:
                     roles = info["roles"]
                     skills = info["skills"]
@@ -119,10 +119,11 @@ class KikBot(Flask):
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
-                        body="Are you looking for a team or an extra member?",
+                        body="Are you ready to find your match?",
                         # keyboards are a great way to provide a menu of options for a user to respond with!
                         keyboards=[
-                            SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                            SuggestedResponseKeyboard(responses=[TextResponse("Ready To Mingle!"),
+                                                                 TextResponse("I've found my match! <3  Remove me from the database!")])]))
                 # END CONVERSATION
                 elif "bye" in message_body.lower():
                     remove = True
@@ -131,6 +132,22 @@ class KikBot(Flask):
                         to=message.from_user,
                         chat_id=message.chat_id,
                         body="k thx bai"))
+                elif message_body == "Ready To Mingle!" or message_body.lower() == "add":
+                    response_messages.append(TextMessage(
+                        to=message.from_user,
+                        chat_id=message.chat_id,
+                        body="Are you looking for a team or an extra member?",
+                        # keyboards are a great way to provide a menu of options for a user to respond with!
+                        keyboards=[
+                            SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                elif "remove" in message_body.lower():
+                    remove = True
+                    if category == "member":
+                        find_team.remove_user(message.from_user)
+                    response_messages.append(TextMessage(
+                        to=message.from_user,
+                        chat_id=message.chat_id,
+                        body="Glad to be of service!  You have been removed from our database!\nHack long and prosper!"))
                 # SELECT CATEGORY: TEAM OR MEMBER
                 elif not category:
                     if message_body == "Team":
@@ -385,9 +402,9 @@ class KikBot(Flask):
                         keyboards=[
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
                 if remove:
-                    user_modifier.remove_user(message.from_user)
+                    active_users.remove_user(message.from_user)
                 else:
-                    user_modifier.put_info(message.from_user, roles, category, search_type, matched_user, skills)
+                    active_users.put_info(message.from_user, roles, category, search_type, matched_user, skills)
 
             # If its not a text message, give them another chance to use the suggested responses
             else:
@@ -459,6 +476,6 @@ if __name__ == "__main__":
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
     # the configuration, and not every time the bot starts.
-    kik.set_configuration(Configuration(webhook='http://5a9b14b2.ngrok.io/incoming'))
+    kik.set_configuration(Configuration(webhook='http://316e505e.ngrok.io/incoming'))
     app = KikBot(kik, __name__)
     app.run(port=8080, host='127.0.0.1', debug=True)
