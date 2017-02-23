@@ -1,5 +1,4 @@
 import json
-import os.path
 
 FIND_MEMBERS = "recruiting_users.txt"
 

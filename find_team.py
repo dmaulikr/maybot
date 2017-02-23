@@ -1,13 +1,17 @@
 import json
 import time
+import os
 
-FIND_TEAM = "find_team_users.txt"
+FIND_TEAM = "find_team.txt"
 
 
 def load_data(database_name):
     """Loads data from database"""
     with open(database_name, 'r') as infile:
-        data = json.load(infile)
+        if os.stat(database_name).st_size == 0:
+            return {"users": {}}
+        else:
+            data = json.load(infile)
     return data
 
 
