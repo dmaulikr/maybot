@@ -1,27 +1,9 @@
-import json
 import time
-import os
 
 import maybot_db
 
 DATABASE_NAME = "maybot"
 FINDING_COLLECTION = "finding"
-
-
-def load_data(database_name):
-    """Loads data from database"""
-    with open(database_name, 'r') as infile:
-        if os.stat(database_name).st_size == 0:
-            return {"users": {}}
-        else:
-            data = json.load(infile)
-    return data
-
-
-def write_data(data, database_name):
-    with open(database_name, 'w') as outfile:
-        json.dump(data, outfile)
-
 
 def get_info(username):
     """Returns the specified user from the finding collection, returns None if not found"""
