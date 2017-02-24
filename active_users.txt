@@ -1,1 +1,25 @@
-{"users": {"raphaelkoh": {"looking": "member", "skills": ["temp"], "search": "quick", "roles": ["Hardware"], "match": null}, "clayparade": {"looking": "member", "skills": [], "search": "quick", "match": null, "roles": []}}}
+{
+    "users": {
+        "raphaelkoh": {
+            "looking": "member",
+            "skills": [],
+            "search": "detailed",
+            "match": "raphaelkoh",
+            "roles": [
+                "Front End",
+                "Back End"
+            ]
+        },
+        "clayparade": {
+            "looking": "member",
+            "skills": [],
+            "search": "quick",
+            "match": "raphaelkoh",
+            "roles": [
+                "Front End",
+                "Back End",
+                "Android"
+            ]
+        }
+    }
+}
