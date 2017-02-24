@@ -27,6 +27,7 @@ from kik import KikApi, Configuration
 from kik.messages import messages_from_json, TextMessage, PictureMessage, \
     SuggestedResponseKeyboard, TextResponse, StartChattingMessage
 import find_team
+import find_members
 import active_users
 import json
 
@@ -82,6 +83,7 @@ class KikBot(Flask):
             elif isinstance(message, TextMessage):
                 user = self.kik_api.get_user(message.from_user)
                 message_body = message.body
+                username = None
 
                 # IF USER IS TO BE REMOVED FROM ACTIVE USERS
                 remove = False
@@ -96,12 +98,6 @@ class KikBot(Flask):
 
                 # START NEW CONVERSATION
                 if message_body.split()[0].lower() in ["hi", "hello"]:
-                    roles = []
-                    skills = []
-                    category = None
-                    search_type = None
-                    matched_user = None
-
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
@@ -123,9 +119,10 @@ class KikBot(Flask):
                         # keyboards are a great way to provide a menu of options for a user to respond with!
                         keyboards=[
                             SuggestedResponseKeyboard(responses=[TextResponse("Ready To Mingle!"),
-                                                                 TextResponse("I've found my match! <3  Remove me from the database!")])]))
+                                                                 TextResponse(
+                                                                     "I've found my match! <3  Remove me from the database!")])]))
                 # END CONVERSATION
-                elif "bye" in message_body.lower():
+                elif "bye" in message_body.lower() or message_body == "We'll find one without you </3":
                     remove = True
 
                     response_messages.append(TextMessage(
@@ -133,6 +130,12 @@ class KikBot(Flask):
                         chat_id=message.chat_id,
                         body="k thx bai"))
                 elif message_body == "Ready To Mingle!" or message_body.lower() == "add":
+                    roles = []
+                    skills = []
+                    category = None
+                    search_type = None
+                    matched_user = None
+
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
@@ -142,8 +145,10 @@ class KikBot(Flask):
                             SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
                 elif "remove" in message_body.lower():
                     remove = True
-                    if category == "member":
+                    if find_team.get_info(message.from_user):
                         find_team.remove_user(message.from_user)
+                    if find_members.get_info(message.from_user):
+                        find_members.remove_user(message.from_user)
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
@@ -204,6 +209,15 @@ class KikBot(Flask):
                             body="Cool! What roles are you looking to fill?",
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
+                    # POST TEAM IN DB
+                    elif message_body == "Yes please":
+                        skills = ["temp"]
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Key in all skills (i.e. languages or frameworks) you are looking for! Separate each skills with ','!",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("No skills needed")])]))
                     elif not matched_user:
                         # CHOOSE ROLES
                         if message_body in self.positions:
@@ -247,7 +261,7 @@ class KikBot(Flask):
                                         chat_id=message.chat_id,
                                         body="You have a match!"
                                     ))
-                                    response_messages += self.get_profile(user_matched, message, result[3])
+                                    response_messages += self.get_profile(user_matched, message, result[3], result[4])
                                     response_messages.append(TextMessage(
                                         to=message.from_user,
                                         chat_id=message.chat_id,
@@ -267,7 +281,9 @@ class KikBot(Flask):
                                     output_msg = ""
                                     for user in result:
                                         output_msg += "User: " + user[0] + "\n"
-                                        output_msg += "Looking to fill: " + ", ".join(user[3]) + "\n"
+                                        output_msg += "Looking to fill:\n - " + "\n - ".join(user[3]) + "\n"
+                                        user_skills = list(map(lambda x: x[0] + ": " + str(x[1]), user[4]))
+                                        output_msg += "Skills:\n - " + "\n - ".join(user_skills) + "\n"
                                     response_messages.append(TextMessage(
                                         to=message.from_user,
                                         chat_id=message.chat_id,
@@ -278,29 +294,45 @@ class KikBot(Flask):
                                         chat_id=message.chat_id,
                                         body="Who would you like to contact?",
                                         keyboards=[SuggestedResponseKeyboard(
-                                            responses=list(map(lambda x: TextResponse("I want " + x[0]), result)))]))
+                                            responses=list(map(lambda x: TextResponse("I want " + x[0]), result)) +
+                                                      [TextResponse("None of them")])]))
                             # NO MATCHES FOUND!
                             else:
                                 response_messages.append(TextMessage(
                                     to=message.from_user,
                                     chat_id=message.chat_id,
-                                    body="Sorry, not matches found!"
-                                ))
+                                    body="Sorry, not matches found! Would you like us to notify you when there's a match?",
+                                    keyboards=[SuggestedResponseKeyboard(
+                                        responses=[TextResponse("Yes please"),
+                                                   TextResponse("We'll find one without you </3")])]))
+                    # DECLINE MATCHES
+                    elif message_body in ["None of them", "Ew no"]:
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Would you like to be discovered?",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("Yes please"),
+                                           TextResponse("We'll find one without you </3")])]))
+                    # INPUT SKILLS
+                    elif len(skills) > 0:
+                        if message_body == "No skills needed":
+                            skills = []
+                        else:
+                            skills = message_body.replace(" ", "").split(",")
+                        find_members.put_info(message.from_user, roles, skills)
+                        remove = True
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Yee!  You are now on the hunt!\nYou will be notified if you are matched!"
+                        ))
                     # QUICK MATCH WITH SINGLE USER
                     elif message_body == "Hook me up!":
                         response_messages.append(TextMessage(
                             to=matched_user,
                             body="Hey, I'm " + message.from_user +
                                  "!\nWould you like to join my dank ass team and disrupt industries?"))
-
-                    # DECLINE MATCH
-                    elif message_body == "Ew no":
-                        remove = True
-
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="k thx bai"))
                     # DETAILED MATCH WITH LIST OF USERS
                     elif "I want " in message_body:
                         matched_user = message_body.replace("I want ", "")
@@ -317,9 +349,26 @@ class KikBot(Flask):
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
-                            body="Sorry, I didn't quite understand that. Would you like to contact " + username + "?",
-                            keyboards=[SuggestedResponseKeyboard(
-                                responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
+                            body="Sorry, I didn't quite understand that."))
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="You are currently looking for positions in:\n - " + "\n - ".join(roles)))
+                        if username:
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="Would you like to contact " + username + "?",
+                                keyboards=[SuggestedResponseKeyboard(
+                                    responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
+                        else:
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="Would you like to be discovered?",
+                                keyboards=[SuggestedResponseKeyboard(
+                                    responses=[TextResponse("Yes please"),
+                                               TextResponse("We'll find one without you </3")])]))
                 # LOOKING FOR A TEAM
                 elif category == "team":
                     # CHOOSE ROLES
@@ -348,25 +397,99 @@ class KikBot(Flask):
                             body="Cool! What roles are you looking to fill?",
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=list(map(lambda x: TextResponse(x), self.positions)))]))
-                    # SEARCH FOR MATCH
-                    elif message_body in ["I'm good", "Of course"]:
+                    # MATCHING WITH USERS
+                    elif not matched_user:
+                        if message_body == "I'm good":
+                            result = find_members.filter_role(roles)
+                            # IF MATCH FOUND
+                            if len(result) > 0:
+                                result = result[0]
+                                username = result[0]
+                                user_matched = self.kik_api.get_user(username)
+                                matched_user = username
+                                response_messages.append(TextMessage(
+                                    to=message.from_user,
+                                    chat_id=message.chat_id,
+                                    body="You have a match!"
+                                ))
+                                response_messages += self.get_profile(user_matched, message, result[3], result[4], True)
+                                response_messages.append(TextMessage(
+                                    to=message.from_user,
+                                    chat_id=message.chat_id,
+                                    body="Would you like to contact " + username + "?",
+                                    keyboards=[SuggestedResponseKeyboard(
+                                        responses=[TextResponse("Hook me up!"), TextResponse("Ew no")])]))
+                            # NO MATCHES FOUND!
+                            else:
+                                response_messages.append(TextMessage(
+                                    to=message.from_user,
+                                    chat_id=message.chat_id,
+                                    body="Sorry, not matches found! Would you like us to notify you when there's a match?",
+                                    keyboards=[SuggestedResponseKeyboard(
+                                        responses=[TextResponse("Yes please"),
+                                                   TextResponse("We'll find one without you </3")])]))
+                        else:
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="Sorry, I didn't quite understand that. Would you like us to notify you when there's a match?",
+                                keyboards=[SuggestedResponseKeyboard(
+                                    responses=[TextResponse("Yes please"),
+                                               TextResponse("We'll find one without you </3")])]))
+                    # CONTACT MATCH
+                    elif message_body == "Hook me up!":
+                        response_messages.append(TextMessage(
+                            to=matched_user,
+                            body="Hey, I'm " + message.from_user +
+                                 "!\nWould you like to join my dank ass team and disrupt industries?"))
+                    elif message_body == "Ew no":
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
-                            body="Nice!  What skills do you have? (i.e. languages, frameworks)"))
-                    # GET PROFICIENCY LEVEL
-                    elif message_body.isdigit():
-                        skills[-1][1] = int(message_body)
-                        response_messages.append(TextMessage(
-                            to=message.from_user,
-                            chat_id=message.chat_id,
-                            body="Your skills include: " + ", ".join(elem[0] for elem in skills) +
-                                 "\nDo you have any more skills?",
+                            body="Would you like us to put you up for grabs?",
                             keyboards=[SuggestedResponseKeyboard(
-                                responses=[TextResponse("Of course"), TextResponse("Nah I'm good")])]
-                        ))
+                                responses=[TextResponse("Yes please"),
+                                           TextResponse("We'll find one without you </3")])]))
+                    # ADD MEMBER TO DATABASE
+                    elif message_body in ["Yes please", "Of course"]:
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Nice!  What skills do you have? (i.e. languages, frameworks)\nIf multiple, separate with ','",
+                            keyboards=[SuggestedResponseKeyboard(
+                                responses=[TextResponse("No skills rip... :(")])]))
+                    # ANYMORE SKILLS?
+                    elif message_body.isdigit():
+                        index = -2
+                        for i in range(len(skills)):
+                            if skills[i][1] == 0:
+                                if index == -1:
+                                    index = i
+                                    break
+                                else:
+                                    skills[i][1] = int(message_body)
+                                    index = -1
+                        # MORE SKILLS
+                        if index > -1:
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="How proficient are you with " + skills[index][0] + " on a scale from 1 to 5?",
+                                keyboards=[SuggestedResponseKeyboard(
+                                    responses=[TextResponse("1"), TextResponse("2"), TextResponse("3"),
+                                               TextResponse("4"), TextResponse("5")])]))
+                        # NO MORE SKILLS
+                        else:
+                            response_messages.append(TextMessage(
+                                to=message.from_user,
+                                chat_id=message.chat_id,
+                                body="Your skills include: " + ", ".join(elem[0] for elem in skills) +
+                                     "\nDo you have any more skills?",
+                                keyboards=[SuggestedResponseKeyboard(
+                                    responses=[TextResponse("Of course"), TextResponse("Nah I'm good")])]
+                            ))
                     # ADD USER TO DATA
-                    elif message_body == "Nah I'm good":
+                    elif message_body in ["Nah I'm good", "No skills rip... :("]:
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
@@ -376,12 +499,13 @@ class KikBot(Flask):
                         remove = True
                     # ADD SKILLS
                     elif len(roles) > 0:
-                        skills = list(filter(lambda x: x != message_body, skills))
-                        skills.append([message_body.strip(), 0])
+                        message_body = message_body.replace(" ", "").split(",")
+                        message_body = list(filter(lambda x: x != skills, message_body))
+                        skills.extend([[elem, 0] for elem in message_body])
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
-                            body="How proficient are you with " + message_body + " on a scale from 1 to 5?",
+                            body="How proficient are you with " + message_body[0] + " on a scale from 1 to 5?",
                             keyboards=[SuggestedResponseKeyboard(
                                 responses=[TextResponse("1"), TextResponse("2"), TextResponse("3"),
                                            TextResponse("4"), TextResponse("5")])]))
@@ -423,7 +547,7 @@ class KikBot(Flask):
         return Response(status=200)
 
     @staticmethod
-    def get_profile(user, message, roles=None):
+    def get_profile(user, message, roles=None, skills=None,team_search=False):
         """Function to check if user has a profile picture and returns appropriate messages.
         :param user: Kik User Object (used to acquire the URL the profile picture)
         :param message: Kik message received by the bot
@@ -441,9 +565,13 @@ class KikBot(Flask):
                     chat_id=message.chat_id,
                     pic_url=profile_picture
                 ))
-
         profile_picture_response = "Name: " + user.first_name + " " + user.last_name
-        profile_picture_response += "\nLooking to fill: " + ", ".join(roles)
+        profile_picture_response += "\nLooking to fill\n - " + "\n - ".join(roles)
+        if team_search:
+            profile_picture_response += "\nPreferred Skills:\n - " + "\n - ".join(skills)
+        else:
+            skills = list(map(lambda x: x[0] + ": " + str(x[1]), skills))
+            profile_picture_response += "\nSkills:\n - " + "\n - ".join(skills)
 
         messages_to_send.append(
             TextMessage(to=message.from_user, chat_id=message.chat_id, body=profile_picture_response))

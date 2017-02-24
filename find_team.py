@@ -53,7 +53,6 @@ def new_user(username, name, hackathon, roles, skills):
             "skills": skills}
     database[FINDING_COLLECTION].insert_one(user)
 
-
 def filter_role(roles, hackathon):
     """Returns all the matches of a user and all other users' roles"""
     if not isinstance(roles, list):
@@ -62,12 +61,14 @@ def filter_role(roles, hackathon):
     database = maybot_db.access(DATABASE_NAME)
     users = database[FINDING_COLLECTION].find({"hackathon": hackathon})
     matches = []
+    
     for user in users:
         user_roles = user["roles"]
+        user_skills = user["skills"]
         score = score_user(roles, user_roles)
         timestamp = user["timestamp"]
         if score > 0:
-            matches.append([user, score, timestamp, user_roles])
+            matches.append([user, score, timestamp, user_roles, user_skills])
     matches = sorted(matches, key=lambda match: (match[1] * (-1), match[2]))
     return matches
 
@@ -76,6 +77,7 @@ def filter_role(roles, hackathon):
 def score_user(roles, user_roles):
     score = reduce(lambda x, y: (x + 1) if (y.lower() in (role.lower() for role in roles)) else x, user_roles, 0)
     return score
+
 
 def remove_user(username):
     """Deletes a user from the finding collection,

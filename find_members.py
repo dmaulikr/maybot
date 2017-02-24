@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 FIND_MEMBERS = "find_members.txt"
 
@@ -20,25 +21,49 @@ def write_data(data, database_name):
 
 
 def put_info(username, roles, skills):
-    recruiting = load_data(FIND_MEMBERS)
+    data = load_data(FIND_MEMBERS)
 
-    if username not in recruiting["users"]:
-        recruiting["users"][username] = {}
-    recruiting["users"][username]["roles"] = roles
-    recruiting["users"][username]["skills"] = skills
-    write_data(recruiting, FIND_MEMBERS)
+    if username not in data["users"]:
+        data["users"][username] = {}
+    data["users"][username]["roles"] = roles
+    data["users"][username]["skills"] = skills
+    data["users"][username]["timestamp"] = time.time()
+    write_data(data, FIND_MEMBERS)
 
 
 def get_info(username):
-    recruiting = load_data(FIND_MEMBERS)
-    if username in recruiting["users"]:
-        return recruiting["users"][username]
+    data = load_data(FIND_MEMBERS)
+    if username in data["users"]:
+        return data["users"][username]
     else:
         return None
 
 
+def filter_role(roles):
+    if not isinstance(roles, list):
+        print ("Invalid Input!")
+        return
+    data = load_data(FIND_MEMBERS)
+    matches = []
+    for user in data["users"]:
+        user_roles = data["users"][user]["roles"]
+        user_skills = data["users"][user]["skills"]
+        score = score_user(roles, user_roles)
+        timestamp = data["users"][user]["timestamp"]
+        if score > 0:
+            matches.append([user, score, timestamp, user_roles, user_skills])
+    matches = sorted(matches, key=lambda match: (match[1] * (-1), match[2]))
+    return matches
+
+
+# scores users based on how many matches
+def score_user(roles, user_roles):
+    score = reduce(lambda x, y: (x + 1) if (y.lower() in (role.lower() for role in roles)) else x, user_roles, 0)
+    return score
+
+
 def remove_user(username):
-    recruiting = load_data(FIND_MEMBERS)
-    if username in recruiting["users"]:
-        del recruiting["users"][username]
-    write_data(recruiting, FIND_MEMBERS)
+    data = load_data(FIND_MEMBERS)
+    if username in data["users"]:
+        del data["users"][username]
+    write_data(data, FIND_MEMBERS)
