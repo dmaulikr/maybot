@@ -8,6 +8,5 @@ def access(db_name):
     with open("config.cfg", "r") as config:
         uri = config.readline().strip()
 
-    print(uri)
     return pymongo.MongoClient(uri)[db_name]
     
