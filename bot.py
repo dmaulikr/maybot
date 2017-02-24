@@ -66,6 +66,7 @@ class KikBot(Flask):
         category = None  # WHO YOU ARE SEARCHING FOR
         search_type = None  # DETAILED OR QUICK SEARCH
         matched_user = None  # WHO YOU ARE PAIRED WITH
+        hackathon = None    # WHICH HACKATHON
 
         for message in messages:
             user = self.kik_api.get_user(message.from_user)
@@ -95,6 +96,7 @@ class KikBot(Flask):
                     category = info["looking"]
                     search_type = info["search"]
                     matched_user = info["match"]
+                    hackathon = info["hackathon"]
 
                 # START NEW CONVERSATION
                 if message_body.split()[0].lower() in ["hi", "hello"]:
@@ -135,7 +137,13 @@ class KikBot(Flask):
                     category = None
                     search_type = None
                     matched_user = None
-
+                    hackathon = None
+                    response_messages.append(TextMessage(
+                        to=message.from_user,
+                        chat_id=message.chat_id,
+                        body="Which hackathon are you going to?"))
+                elif not hackathon:
+                    hackathon = message_body.lower();
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
@@ -247,7 +255,7 @@ class KikBot(Flask):
                                     responses=list(map(lambda x: TextResponse(x), self.positions)))]))
                         # SEARCH FOR MATCH
                         elif message_body == "I'm good":
-                            result = find_team.filter_role(roles)
+                            result = find_team.filter_role(roles, hackathon)
                             # IF MATCH FOUND
                             if len(result) > 0:
                                 # QUICK SEARCH
@@ -320,7 +328,7 @@ class KikBot(Flask):
                             skills = []
                         else:
                             skills = message_body.replace(" ", "").split(",")
-                        find_members.put_info(message.from_user, roles, skills)
+                        find_members.put_info(message.from_user, hackathon, roles, skills)
                         remove = True
                         response_messages.append(TextMessage(
                             to=message.from_user,
@@ -400,7 +408,7 @@ class KikBot(Flask):
                     # MATCHING WITH USERS
                     elif not matched_user:
                         if message_body == "I'm good":
-                            result = find_members.filter_role(roles)
+                            result = find_members.filter_role(roles, hackathon)
                             # IF MATCH FOUND
                             if len(result) > 0:
                                 result = result[0]
@@ -495,7 +503,7 @@ class KikBot(Flask):
                             chat_id=message.chat_id,
                             body="Right on!  You are now single ready to mingle!\nYou will be notified if you are matched!"
                         ))
-                        find_team.new_user(message.from_user, user.first_name + " " + user.last_name, roles, skills)
+                        find_team.new_user(message.from_user, user.first_name + " " + user.last_name, hackathon, roles, skills)
                         remove = True
                     # ADD SKILLS
                     elif len(roles) > 0:
@@ -528,7 +536,7 @@ class KikBot(Flask):
                 if remove:
                     active_users.remove_user(message.from_user)
                 else:
-                    active_users.put_info(message.from_user, roles, category, search_type, matched_user, skills)
+                    active_users.put_info(message.from_user, hackathon, roles, category, search_type, matched_user, skills)
 
             # If its not a text message, give them another chance to use the suggested responses
             else:
@@ -604,6 +612,6 @@ if __name__ == "__main__":
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
     # the configuration, and not every time the bot starts.
-    kik.set_configuration(Configuration(webhook='http://316e505e.ngrok.io/incoming'))
+    kik.set_configuration(Configuration(webhook='http://f43d45a9.ngrok.io/incoming'))
     app = KikBot(kik, __name__)
     app.run(port=8080, host='127.0.0.1', debug=True)

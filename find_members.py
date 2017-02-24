@@ -20,11 +20,12 @@ def write_data(data, database_name):
         json.dump(data, outfile)
 
 
-def put_info(username, roles, skills):
+def put_info(username, hackathon, roles, skills):
     data = load_data(FIND_MEMBERS)
 
     if username not in data["users"]:
         data["users"][username] = {}
+    data["users"][username]["hackathon"] = hackathon
     data["users"][username]["roles"] = roles
     data["users"][username]["skills"] = skills
     data["users"][username]["timestamp"] = time.time()
@@ -39,13 +40,16 @@ def get_info(username):
         return None
 
 
-def filter_role(roles):
+def filter_role(roles, hackathon):
     if not isinstance(roles, list):
         print ("Invalid Input!")
         return
     data = load_data(FIND_MEMBERS)
     matches = []
     for user in data["users"]:
+        user_hackathon = data["users"][user]["hackathon"]
+        if user_hackathon != hackathon:
+            continue
         user_roles = data["users"][user]["roles"]
         user_skills = data["users"][user]["skills"]
         score = score_user(roles, user_roles)

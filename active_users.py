@@ -19,11 +19,12 @@ def write_data(data, database_name):
         json.dump(data, outfile)
 
 
-def put_info(username, roles, looking, search, match, skills):
+def put_info(username, hackathon, roles, looking, search, match, skills):
     users = load_data(ACTIVE_USERS)
 
     if username not in users["users"]:
         users["users"][username] = {}
+    users["users"][username]["hackathon"] = hackathon
     users["users"][username]["roles"] = roles
     users["users"][username]["looking"] = looking
     users["users"][username]["search"] = search
