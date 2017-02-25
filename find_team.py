@@ -7,17 +7,13 @@ FINDING_COLLECTION = "finding"
 
 def get_info(username):
     """Returns the specified user from the finding collection, returns None if not found"""
-    database = maybot_db.access(DATABASE_NAME)
-    search = database[FINDING_COLLECTION].find_one({"username": username})
 
-    if search.count() > 0:
-        return search[0]
-    else:
-        return None
+    return maybot_db.get_info(DATABASE_NAME, FINDING_COLLECTION, username)
 
 
-def new_user(username, name, hackathon, roles, skills):
-    """Inserts a new user into the database
+def put_info(username, name, hackathon, roles, skills):
+    """Updates the info a user, if user doesn't exit inserts a new user. Returns True if sucessful,
+    otherwise False
 
     Keyword Arguments:
     username -- user's username as a string
@@ -26,14 +22,7 @@ def new_user(username, name, hackathon, roles, skills):
     roles -- list of interested roles
     skills -- list of list of skills and their level from 1 to 5 as an integer
     """
-    database = maybot_db.access(DATABASE_NAME)
-    user = {"username": username,
-            "name": name,
-            'timestamp': time.time(),
-            "hackathon": hackathon,
-            "roles": roles,
-            "skills": skills}
-    database[FINDING_COLLECTION].insert_one(user)
+    return maybot_db.put_info(DATABASE_NAME, FINDING_COLLECTION, username, name, hackathon, roles, skills)
 
 
 def filter_role(roles, hackathon):
@@ -66,5 +55,5 @@ def score_user(roles, user_roles):
 def remove_user(username):
     """Deletes a user from the finding collection,
     returns True if user was removed, otherwise False"""
-    database = maybot_db.access(DATABASE_NAME)
-    return database[FINDING_COLLECTION].delete_one({"username": username}).acknowledged
+
+    return maybot_db.remove_user(DATABASE_NAME, FINDING_COLLECTION, username)

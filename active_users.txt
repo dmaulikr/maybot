@@ -1,1 +1,15 @@
-{"users": {"raphaelkoh": {"search": "quick", "roles": ["Back End", "Front End"], "skills": [], "looking": "member", "hackathon": "fraser hacks", "match": "raphaelkoh"}}}
+{
+  "users": {
+    "raphaelkoh": {
+      "search": "quick",
+      "roles": [
+        "Back End",
+        "Front End"
+      ],
+      "skills": [],
+      "looking": "member",
+      "hackathon": "fraser hacks",
+      "match": "raphaelkoh"
+    }
+  }
+}

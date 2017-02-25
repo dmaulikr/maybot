@@ -1,48 +1,32 @@
 import json
 import os
 
-ACTIVE_USERS = "active_users.txt"
+import maybot_db
 
-
-def load_data(database_name):
-    """Loads data from database"""
-    with open(database_name, 'r') as infile:
-        if os.stat(database_name).st_size == 0:
-            return {"users": {}}
-        else:
-            data = json.load(infile)
-    return data
-
-
-def write_data(data, database_name):
-    with open(database_name, 'w') as outfile:
-        json.dump(data, outfile)
-
+DATABASE_NAME = "maybot"
+ACTIVE_COLLECTION = "active"
 
 def put_info(username, hackathon, roles, looking, search, match, skills):
-    users = load_data(ACTIVE_USERS)
+  """Updates the info a user, if user doesn't exit inserts a new user. Returns True if sucessful,
+    otherwise False
+  """
 
-    if username not in users["users"]:
-        users["users"][username] = {}
-    users["users"][username]["hackathon"] = hackathon
-    users["users"][username]["roles"] = roles
-    users["users"][username]["looking"] = looking
-    users["users"][username]["search"] = search
-    users["users"][username]["match"] = match
-    users["users"][username]["skills"] = skills
-    write_data(users, ACTIVE_USERS)
+    data = maybot_db.access(DATABASE_NAME)[ACTIVE_COLLECTION]
+    user = {"name": name,
+            "timestamp": time.time(),
+            "hackathon": hackathon,
+            "roles": roles,
+            "looking": looking,
+            "search": search,
+            "match": match,
+            "skills": skills}
+
+    return data.update_one({"username": username}, {"$set": user}, upsert=True).acknowledged
 
 
 def get_info(username):
-    users = load_data(ACTIVE_USERS)
-    if username in users["users"]:
-        return users["users"][username]
-    else:
-        return None
+    return maybot_db.get_info(DATABASE_NAME, ACTIVE_COLLECTION, username)
 
 
 def remove_user(username):
-    users = load_data(ACTIVE_USERS)
-    if username in users["users"]:
-        del users["users"][username]
-    write_data(users, ACTIVE_USERS)
+    return maybot_db.remove_user(DATABASE_NAME, ACTIVE_COLLECTION, username)

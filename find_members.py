@@ -1,59 +1,45 @@
 import json
 import os
-import time
 
-FIND_MEMBERS = "find_members.txt"
+import maybot_db
 
+RECRUITING_COLLECTION = "recruiting"
+DATABASE_NAME = "maybot"
 
-def load_data(database_name):
-    """Loads data from database"""
-    with open(database_name, 'r') as infile:
-        if os.stat(database_name).st_size == 0:
-            return {"users": {}}
-        else:
-            data = json.load(infile)
-    return data
+def put_info(username, name, hackathon, roles, skills):
+    """Updates the info a user, if user doesn't exit inserts a new user. Returns True if sucessful,
+    otherwise False
 
+    Keyword Arguments:
+    username -- user's username as a string
+    name -- user's name as a string
+    hackathon -- hackathon attending as a string
+    roles -- list of interested roles
+    skills -- list of list of skills and their level from 1 to 5 as an integer
+    """
 
-def write_data(data, database_name):
-    with open(database_name, 'w') as outfile:
-        json.dump(data, outfile)
-
-
-def put_info(username, hackathon, roles, skills):
-    data = load_data(FIND_MEMBERS)
-
-    if username not in data["users"]:
-        data["users"][username] = {}
-    data["users"][username]["hackathon"] = hackathon
-    data["users"][username]["roles"] = roles
-    data["users"][username]["skills"] = skills
-    data["users"][username]["timestamp"] = time.time()
-    write_data(data, FIND_MEMBERS)
+    return maybot_db.put_info(DATABASE_NAME, RECRUITING_COLLECTION,
+                              username, name, hackathon, roles, skills)
 
 
 def get_info(username):
-    data = load_data(FIND_MEMBERS)
-    if username in data["users"]:
-        return data["users"][username]
-    else:
-        return None
+    """Returns the specified user from the recruiting collection, returns None if not found"""
+    return maybot_db.get_info(DATABASE_NAME, RECRUITING_COLLECTION, username)
 
 
 def filter_role(roles, hackathon):
     if not isinstance(roles, list):
         print ("Invalid Input!")
         return
-    data = load_data(FIND_MEMBERS)
+    recruiting = maybot_db.access(DATABASE_NAME)[RECRUITING_COLLECTION]
+    data = recruiting.find({"hackaton": hackathon})
+
     matches = []
-    for user in data["users"]:
-        user_hackathon = data["users"][user]["hackathon"]
-        if user_hackathon != hackathon:
-            continue
-        user_roles = data["users"][user]["roles"]
-        user_skills = data["users"][user]["skills"]
+    for user in data:
+        user_roles = user["roles"]
+        user_skills = user["skills"]
         score = score_user(roles, user_roles)
-        timestamp = data["users"][user]["timestamp"]
+        timestamp = user["timestamp"]
         if score > 0:
             matches.append([user, score, timestamp, user_roles, user_skills])
     matches = sorted(matches, key=lambda match: (match[1] * (-1), match[2]))
@@ -67,7 +53,6 @@ def score_user(roles, user_roles):
 
 
 def remove_user(username):
-    data = load_data(FIND_MEMBERS)
-    if username in data["users"]:
-        del data["users"][username]
-    write_data(data, FIND_MEMBERS)
+    """Deletes a user from the recruiting collection,
+    returns True if user was removed, otherwise False"""
+    return maybot_db.remove_user(DATABASE_NAME, RECRUITING_COLLECTION, username)
