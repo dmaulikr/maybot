@@ -1,6 +1,3 @@
-import json
-import os
-
 import maybot_db
 
 RECRUITING_COLLECTION = "recruiting"

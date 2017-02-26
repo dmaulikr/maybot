@@ -1,5 +1,3 @@
-import time
-
 import maybot_db
 
 DATABASE_NAME = "maybot"
