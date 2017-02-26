@@ -5,6 +5,7 @@ import maybot_db
 DATABASE_NAME = "maybot"
 FINDING_COLLECTION = "finding"
 
+
 def get_info(username):
     """Returns the specified user from the finding collection, returns None if not found"""
 

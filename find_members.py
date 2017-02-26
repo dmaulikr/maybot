@@ -6,6 +6,7 @@ import maybot_db
 RECRUITING_COLLECTION = "recruiting"
 DATABASE_NAME = "maybot"
 
+
 def put_info(username, name, hackathon, roles, skills):
     """Updates the info a user, if user doesn't exit inserts a new user. Returns True if sucessful,
     otherwise False
@@ -32,16 +33,18 @@ def filter_role(roles, hackathon):
         print ("Invalid Input!")
         return
     recruiting = maybot_db.access(DATABASE_NAME)[RECRUITING_COLLECTION]
-    data = recruiting.find({"hackaton": hackathon})
+    data = recruiting.find({"hackathon": hackathon})
 
     matches = []
     for user in data:
+        username = user["username"]
         user_roles = user["roles"]
         user_skills = user["skills"]
         score = score_user(roles, user_roles)
         timestamp = user["timestamp"]
+
         if score > 0:
-            matches.append([user, score, timestamp, user_roles, user_skills])
+            matches.append([username, score, timestamp, user_roles, user_skills])
     matches = sorted(matches, key=lambda match: (match[1] * (-1), match[2]))
     return matches
 

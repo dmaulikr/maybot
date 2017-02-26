@@ -2,6 +2,7 @@
 import time
 import pymongo
 
+
 def access(db_name):
     """Returns maybot database object"""
 
@@ -11,18 +12,17 @@ def access(db_name):
 
     return pymongo.MongoClient(uri)[db_name]
 
+
 def get_info(database, collection, username):
     """Returns the specified user from a collection, returns None if not found"""
     database = access(database)
     search = database[collection].find_one({"username": username})
 
-    if search.count() > 0:
-        return search[0]
-    else:
-        return None
+    return search
+
 
 def put_info(database, collection, username, name, hackathon, roles, skills):
-    """Updates the info a user, if user doesn't exit inserts a new user. Returns True if sucessful,
+    """Updates the info a user, if user doesn't exit inserts a new user. Returns True if successful,
     otherwise False
 
     Keyword Arguments:
@@ -39,6 +39,7 @@ def put_info(database, collection, username, name, hackathon, roles, skills):
             "roles": roles,
             "skills": skills}
     return data.update_one({"username": username}, {"$set": user}, upsert=True).acknowledged
+
 
 def remove_user(database, collection, username):
     """Deletes a user from the collection,

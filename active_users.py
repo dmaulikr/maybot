@@ -1,19 +1,17 @@
-import json
-import os
+import time
 
 import maybot_db
 
 DATABASE_NAME = "maybot"
 ACTIVE_COLLECTION = "active"
 
-def put_info(username, hackathon, roles, looking, search, match, skills):
-  """Updates the info a user, if user doesn't exit inserts a new user. Returns True if sucessful,
-    otherwise False
-  """
 
+def put_info(username, hackathon, roles, looking, search, match, skills):
+    """Updates the info a user, if user doesn't exit inserts a new user. Returns True if successful,
+    otherwise False
+    """
     data = maybot_db.access(DATABASE_NAME)[ACTIVE_COLLECTION]
-    user = {"name": name,
-            "timestamp": time.time(),
+    user = {"timestamp": time.time(),
             "hackathon": hackathon,
             "roles": roles,
             "looking": looking,
