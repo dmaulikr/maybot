@@ -675,14 +675,22 @@ class KikBot(Flask):
 if __name__ == "__main__":
     """ Main program """
     env.read_envfile()
-    KIK_USERNAME = env.str('APP_NAME') or os.environ['APP_NAME']
-    KIK_API_KEY = os.environ['KIK_API_KEY'] or env.str('KIK_API_KEY')
-    kik = KikApi(KIK_USERNAME, KIK_API_KEY)
-    port = env.int('PORT') or int(os.environ.get('PORT', 8080))
+    local = true
+    if local:
+        KIK_USERNAME = env.str('APP_NAME') or os.environ['APP_NAME']
+        KIK_API_KEY = os.environ['KIK_API_KEY'] or env.str('KIK_API_KEY')
+        kik = KikApi(KIK_USERNAME, KIK_API_KEY)
+        port = env.int('PORT') or int(os.environ.get('PORT', 8080))
+        webhook = os.environ['WEBHOOK'] or env.str('WEBHOOK')
+    else:
+        KIK_USERNAME = os.environ['APP_NAME']
+        KIK_API_KEY = os.environ['KIK_API_KEY']
+        kik = KikApi(KIK_USERNAME, KIK_API_KEY)
+        port = int(os.environ.get('PORT', 8080))
+        webhook = os.environ['WEBHOOK']
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
     # the configuration, and not every time the bot starts.
-    webhook = os.environ['WEBHOOK'] or env.str('WEBHOOK')
     kik.set_configuration(Configuration(webhook=webhook))
     app = KikBot(kik, __name__)
     app.run(port=port)
