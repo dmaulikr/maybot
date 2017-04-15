@@ -1,5 +1,6 @@
 *.exe
 env
+.env
 .idea/*
 test/*
 *.pyc
