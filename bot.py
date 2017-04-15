@@ -675,7 +675,7 @@ class KikBot(Flask):
 if __name__ == "__main__":
     """ Main program """
     env.read_envfile()
-    local = true
+    local = False
     if local:
         KIK_USERNAME = env.str('APP_NAME') or os.environ['APP_NAME']
         KIK_API_KEY = os.environ['KIK_API_KEY'] or env.str('KIK_API_KEY')
