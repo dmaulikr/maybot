@@ -39,6 +39,7 @@ class KikBot(Flask):
         :return: Response
         """
         # verify that this is a valid request
+        print("hi")
         if not self.kik_api.verify_signature(
                 request.headers.get("X-Kik-Signature"), request.get_data()):
             return Response(status=403)
