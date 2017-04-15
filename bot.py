@@ -16,7 +16,10 @@ import json
 import os
 from envparse import env
 
+# DEBUG variables
 local = False
+debug = False
+
 
 class KikBot(Flask):
     """ Flask kik bot application class"""
@@ -40,7 +43,6 @@ class KikBot(Flask):
         :return: Response
         """
         # verify that this is a valid request
-        print("hi")
         if not self.kik_api.verify_signature(
                 request.headers.get("X-Kik-Signature"), request.get_data()):
             return Response(status=403)
@@ -57,7 +59,6 @@ class KikBot(Flask):
 
         for message in messages:
             user = self.kik_api.get_user(message.from_user)
-            print(message.body)
 
             # Check if its the user's first message. Start Chatting messages are sent only once.
             if isinstance(message, StartChattingMessage):
@@ -683,11 +684,10 @@ if __name__ == "__main__":
     KIK_API_KEY = str(os.environ.get('KIK_API_KEY'))
     port = int(os.environ.get('PORT', 8080))
     webhook = str(os.environ.get('WEBHOOK'))
-    print(KIK_USERNAME, KIK_API_KEY, port, webhook)
     kik = KikApi(KIK_USERNAME, KIK_API_KEY)
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
     # the configuration, and not every time the bot starts.
     kik.set_configuration(Configuration(webhook=webhook))
     app = KikBot(kik, __name__)
-    app.run(port=port, host="0.0.0.0", debug=True)
+    app.run(port=port, host="0.0.0.0", debug=debug)
