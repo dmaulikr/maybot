@@ -676,8 +676,6 @@ if __name__ == "__main__":
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
     # the configuration, and not every time the bot starts.
-    #kik.set_configuration(Configuration(webhook='https://mayb0t.herokuapp.com/webhook/incoming'))
-    config = kik.get_configuration()
-    print(config.to_json())
+    kik.set_configuration(Configuration(webhook='https://mayb0t.herokuapp.com/webhook/incoming'))
     app = KikBot(kik, __name__)
-    app.run(port=8080, host='127.0.0.1', debug=True)
+    app.run(port=8080, debug=True)
