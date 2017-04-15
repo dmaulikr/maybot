@@ -675,7 +675,7 @@ class KikBot(Flask):
 
 if __name__ == "__main__":
     """ Main program """
-    local = False
+    local = True
     if local:
         env.read_envfile()
     KIK_USERNAME = str(os.environ.get('APP_NAME'))
@@ -689,4 +689,4 @@ if __name__ == "__main__":
     # the configuration, and not every time the bot starts.
     kik.set_configuration(Configuration(webhook=webhook))
     app = KikBot(kik, __name__)
-    app.run(port=port, debug=True)
+    app.run(port=port, host="0.0.0.0", debug=True)
