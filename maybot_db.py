@@ -1,14 +1,17 @@
 """Allows access to maybot mongoDB database"""
 import time
 import pymongo
+from bot import local
+from envparse import env
+import os
 
 
 def access(db_name):
     """Returns maybot database object"""
 
-    uri = ""
-    with open("config.cfg", "r") as config:
-        uri = config.readline().strip()
+    if local:
+        env.read_envfile()
+    uri = str(os.environ.get('DB_URI'))
 
     return pymongo.MongoClient(uri)[db_name]
 
