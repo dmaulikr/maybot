@@ -55,6 +55,7 @@ class KikBot(Flask):
 
         for message in messages:
             user = self.kik_api.get_user(message.from_user)
+            print(message.body)
 
             # Check if its the user's first message. Start Chatting messages are sent only once.
             if isinstance(message, StartChattingMessage):
