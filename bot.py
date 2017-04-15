@@ -54,6 +54,7 @@ class KikBot(Flask):
         hackathon = None    # WHICH HACKATHON
 
         for message in messages:
+            print(message.body)
             user = self.kik_api.get_user(message.from_user)
             print(message.body)
 
