@@ -678,12 +678,12 @@ if __name__ == "__main__":
     local = False
     if local:
         env.read_envfile()
-    KIK_USERNAME = os.environ.get('APP_NAME')
-    KIK_API_KEY = os.environ.get('KIK_API_KEY')
+    KIK_USERNAME = str(os.environ.get('APP_NAME'))
+    KIK_API_KEY = str(os.environ.get('KIK_API_KEY'))
     port = int(os.environ.get('PORT', 8080))
-    webhook = os.environ.get('WEBHOOK')
+    webhook = str(os.environ.get('WEBHOOK'))
     print(KIK_USERNAME, KIK_API_KEY, port, webhook)
-    sys.stdout.flush()
+    #sys.stdout.flush()
     kik = KikApi(KIK_USERNAME, KIK_API_KEY)
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
