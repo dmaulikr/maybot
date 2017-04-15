@@ -31,7 +31,7 @@ class KikBot(Flask):
         super(KikBot, self).__init__(import_name, static_path, static_url_path, static_folder, template_folder,
                                      instance_path, instance_relative_config, root_path)
 
-        self.route("/incoming", methods=["GET"])(self.incoming)
+        self.route("/incoming", methods=["POST"])(self.incoming)
 
     def incoming(self):
         """Handle incoming messages to the bot. All requests are authenticated using the signature in
