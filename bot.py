@@ -13,6 +13,7 @@ import find_team
 import find_members
 import active_users
 import json
+import os
 
 
 class KikBot(Flask):
@@ -672,10 +673,13 @@ class KikBot(Flask):
 
 if __name__ == "__main__":
     """ Main program """
-    kik = KikApi('maybot', '3a42f662-6593-49e3-bcfe-ddf805a21726')
+    KIK_USERNAME = os.environ['APP_NAME']
+    KIK_API_KEY = os.environ['KIK_API_KEY']
+    kik = KikApi(KIK_USERNAME, KIK_API_KEY)
+    port = int(os.environ.get('PORT', 8080))
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
     # the configuration, and not every time the bot starts.
-    kik.set_configuration(Configuration(webhook='https://mayb0t.herokuapp.com/webhook/incoming'))
+    kik.set_configuration(Configuration(webhook=os.environ['WEBHOOK']))
     app = KikBot(kik, __name__)
-    app.run(port=8080, debug=True)
+    app.run(port=port)
