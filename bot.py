@@ -14,7 +14,6 @@ import find_members
 import active_users
 import json
 import os
-import sys
 from envparse import env
 
 
@@ -683,7 +682,6 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))
     webhook = str(os.environ.get('WEBHOOK'))
     print(KIK_USERNAME, KIK_API_KEY, port, webhook)
-    #sys.stdout.flush()
     kik = KikApi(KIK_USERNAME, KIK_API_KEY)
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
