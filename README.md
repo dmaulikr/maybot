@@ -27,3 +27,7 @@ We can't wait to continue working on this project and connecting hackers across 
       <img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/hookup.png" alt="Search" width="300px"/>
       
 6. Enjoy creating the dankest hackathon project!
+
+# Get MayBot
+Get Maybot by scanning this Kik Code!
+![](https://github.com/theRoughCode/maybot/blob/master/screenshots/kikcode.png)
