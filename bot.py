@@ -17,8 +17,8 @@ import os
 from envparse import env
 
 # DEBUG variables
-local = True
-debug = True
+local = False
+debug = False
 
 
 class KikBot(Flask):
@@ -92,12 +92,11 @@ class KikBot(Flask):
                     search_type = info["search"]
                     matched_user = info["match"]
                     hackathon = info["hackathon"]
-
-                if any(s in message_body for s in ['code', 'scan']):
+                if any(s in message_body.lower() for s in ['code', 'scan']):
                     response_messages.append(PictureMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
-                        pic_url=''
+                        pic_url='http://i.imgur.com/vCy4u8B.png'
                     ))
 
                 # START NEW CONVERSATION
@@ -257,10 +256,7 @@ class KikBot(Flask):
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
-                            body="Sorry, I didn't quite understand that. What are you looking for?",
-                            # keyboards are a great way to provide a menu of options for a user to respond with!
-                            keyboards=[
-                                SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                            body="If you want to start looking for matches, send me a 'hi' or 'hello'!"))
                 # LOOKING FOR MEMBERS
                 elif category == "member":
                     # INPUT HACKATHON (CHANGING PREFERENCES)
@@ -610,10 +606,7 @@ class KikBot(Flask):
                     response_messages.append(TextMessage(
                         to=message.from_user,
                         chat_id=message.chat_id,
-                        body="Sorry, I didn't quite understand that. What are you looking for?",
-                        # keyboards are a great way to provide a menu of options for a user to respond with!
-                        keyboards=[
-                            SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                        body="If you want to start looking for matches, send me a 'hi' or 'hello'!"))
                 if remove:
                     active_users.remove_user(message.from_user)
                 else:
@@ -673,7 +666,7 @@ if __name__ == "__main__":
     KIK_USERNAME = str(os.environ.get('APP_NAME'))
     KIK_API_KEY = str(os.environ.get('KIK_API_KEY'))
     port = int(os.environ.get('PORT', 8080))
-    webhook = 'http://b17ba6ae.ngrok.io/incoming'  #str(os.environ.get('WEBHOOK'))
+    webhook = str(os.environ.get('WEBHOOK'))
     kik = KikApi(KIK_USERNAME, KIK_API_KEY)
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
