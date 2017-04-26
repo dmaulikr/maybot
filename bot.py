@@ -8,7 +8,7 @@ See https://github.com/kikinteractive/kik-python for Kik's Python API documentat
 from flask import Flask, request, Response
 from kik import KikApi, Configuration
 from kik.messages import messages_from_json, TextMessage, PictureMessage, \
-    SuggestedResponseKeyboard, TextResponse, StartChattingMessage
+    SuggestedResponseKeyboard, TextResponse, StartChattingMessage, ScanDataMessage
 import find_team
 import find_members
 import active_users
@@ -17,8 +17,8 @@ import os
 from envparse import env
 
 # DEBUG variables
-local = False
-debug = False
+local = True
+debug = True
 
 
 class KikBot(Flask):
@@ -61,16 +61,22 @@ class KikBot(Flask):
             user = self.kik_api.get_user(message.from_user)
 
             # Check if its the user's first message. Start Chatting messages are sent only once.
-            if isinstance(message, StartChattingMessage):
+            if isinstance(message, StartChattingMessage) or isinstance(message, ScanDataMessage):
                 response_messages.append(TextMessage(
                     to=message.from_user,
                     chat_id=message.chat_id,
-                    body="Hi {}!".format(user.first_name),
-                    # keyboards are a great way to provide a menu of options for a user to respond with!
-                    keyboards=[SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                    body="Hi {}!".format(user.first_name)))
+                response_messages.append(TextMessage(
+                    to=message.from_user,
+                    chat_id=message.chat_id,
+                    body="I'm May, aka June2.0, and I'm here to hook you up with the best team for this hackathon!"))
+                response_messages.append(TextMessage(
+                    to=message.from_user,
+                    chat_id=message.chat_id,
+                    body="To start looking for potential matches or if you just wanna start chatting with me, just type 'hi' or 'hello'!  Try it now!"))
 
             # Check if the user has sent a text message.
-            elif isinstance(message, TextMessage):
+            if isinstance(message, TextMessage):
                 user = self.kik_api.get_user(message.from_user)
                 message_body = message.body
                 username = None
@@ -87,28 +93,25 @@ class KikBot(Flask):
                     matched_user = info["match"]
                     hackathon = info["hackathon"]
 
+                if any(s in message_body for s in ['code', 'scan']):
+                    response_messages.append(PictureMessage(
+                        to=message.from_user,
+                        chat_id=message.chat_id,
+                        pic_url=''
+                    ))
+
                 # START NEW CONVERSATION
-                if message_body.split()[0].lower() in ["hi", "hello"]:
-                    response_messages.append(TextMessage(
-                        to=message.from_user,
-                        chat_id=message.chat_id,
-                        body="Hi {}!".format(user.first_name),
-                        # keyboards are a great way to provide a menu of options for a user to respond with!
-                        keyboards=[
-                            SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
-                    response_messages.append(TextMessage(
-                        to=message.from_user,
-                        chat_id=message.chat_id,
-                        body="I'm May, aka June2.0.",
-                        # keyboards are a great way to provide a menu of options for a user to respond with!
-                        keyboards=[
-                            SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                elif message_body.split()[0].lower() in ["hi", "hello"]:
 
                     searching = find_team.get_info(message.from_user)
                     recruiting = find_members.get_info(message.from_user)
 
                     if searching:
                         category = "team"
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Welcome back, {}!".format(user.first_name)))
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
@@ -124,6 +127,10 @@ class KikBot(Flask):
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
+                            body="Welcome back, {}!".format(user.first_name)))
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
                             body="You are currently recruiting for team members.  What would you like to do?",
                             # keyboards are a great way to provide a menu of options for a user to respond with!
                             keyboards=[
@@ -132,6 +139,10 @@ class KikBot(Flask):
                                                                      TextResponse(
                                                                          "I've found my match! <3  Remove me from the database!")])]))
                     else:
+                        response_messages.append(TextMessage(
+                            to=message.from_user,
+                            chat_id=message.chat_id,
+                            body="Hi there, {}!".format(user.first_name)))
                         response_messages.append(TextMessage(
                             to=message.from_user,
                             chat_id=message.chat_id,
@@ -416,8 +427,8 @@ class KikBot(Flask):
                             body="Contacting " + matched_user))
                         response_messages.append(TextMessage(
                             to=matched_user,
-                            body="Hey, I'm " + message.from_user +
-                                 "!\nWould you like to join my dank ass team and disrupt industries?"))
+                            body="Hey, you've been matched with " + message.from_user +
+                                 "!\nWould you like to join his dank team and disrupt industries? If so, shoot him a message!"))
                     # INCORRECT INPUT
                     else:
                         response_messages.append(TextMessage(
@@ -518,8 +529,8 @@ class KikBot(Flask):
                     elif message_body == "Hook me up!":
                         response_messages.append(TextMessage(
                             to=matched_user,
-                            body="Hey, I'm " + message.from_user +
-                                 "!\nWould you like to join my dank ass team and disrupt industries?"))
+                            body="Hey, you've been matched with " + message.from_user +
+                                 "!\nIf you'd like him on your team, send him a message!"))
                     elif message_body == "Ew no":
                         response_messages.append(TextMessage(
                             to=message.from_user,
@@ -613,9 +624,7 @@ class KikBot(Flask):
                 response_messages.append(TextMessage(
                     to=message.from_user,
                     chat_id=message.chat_id,
-                    body="Sorry, I didn't quite understand that. What are you looking for?",
-                    # keyboards are a great way to provide a menu of options for a user to respond with!
-                    keyboards=[SuggestedResponseKeyboard(responses=[TextResponse("Team"), TextResponse("Member")])]))
+                    body="If you want to start looking for matches, send me a 'hi' or 'hello'!"))
 
             # We're sending a batch of messages. We can send up to 25 messages at a time (with a limit of
             # 5 messages per user).
@@ -656,25 +665,6 @@ class KikBot(Flask):
 
         return messages_to_send
 
-    @staticmethod
-    def contact(user):
-        request.post(
-            'https://api.kik.com/v1/message',
-            auth=('maybot', '3a42f662-6593-49e3-bcfe-ddf805a21726'),
-            headers={
-                'Content-Type': 'application/json'
-            },
-            data=json.dumps({
-                'messages': [
-                    {
-                        'body': 'Hey, would you like to join my dank ass team and disrupt industries?',
-                        'to': user,
-                        'type': 'text'
-                    }
-                ]
-            })
-        )
-
 
 if __name__ == "__main__":
     """ Main program """
@@ -683,7 +673,7 @@ if __name__ == "__main__":
     KIK_USERNAME = str(os.environ.get('APP_NAME'))
     KIK_API_KEY = str(os.environ.get('KIK_API_KEY'))
     port = int(os.environ.get('PORT', 8080))
-    webhook = str(os.environ.get('WEBHOOK'))
+    webhook = 'http://b17ba6ae.ngrok.io/incoming'  #str(os.environ.get('WEBHOOK'))
     kik = KikApi(KIK_USERNAME, KIK_API_KEY)
     # For simplicity, we're going to set_configuration on startup. However, this really only needs to happen once
     # or if the configuration changes. In a production setting, you would only issue this call if you need to change
