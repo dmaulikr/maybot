@@ -30,4 +30,5 @@ We can't wait to continue working on this project and connecting hackers across 
 
 # Get MayBot
 Get Maybot by scanning this Kik Code!
-![](https://github.com/theRoughCode/maybot/blob/master/screenshots/kikcode.png)
+<br />
+<img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/kikcode.png" alt="Kik Code" width="300px"/>
