@@ -76,7 +76,7 @@ class KikBot(Flask):
                     body="To start looking for potential matches or if you just wanna start chatting with me, just type 'hi' or 'hello'!  Try it now!"))
 
             # Check if the user has sent a text message.
-            if isinstance(message, TextMessage):
+            elif isinstance(message, TextMessage):
                 user = self.kik_api.get_user(message.from_user)
                 message_body = message.body
                 username = None
@@ -92,6 +92,7 @@ class KikBot(Flask):
                     search_type = info["search"]
                     matched_user = info["match"]
                     hackathon = info["hackathon"]
+
                 if any(s in message_body.lower() for s in ['code', 'scan']):
                     response_messages.append(PictureMessage(
                         to=message.from_user,
