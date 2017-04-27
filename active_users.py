@@ -5,7 +5,7 @@ DATABASE_NAME = "maybot"
 ACTIVE_COLLECTION = "active"
 
 
-def put_info(username, hackathon, roles, looking, search, match, skills):
+def put_info(username, hackathon, roles, looking, search, match, skills, level):
     """Updates the info a user, if user doesn't exit inserts a new user. Returns True if successful,
     otherwise False
     """
@@ -16,7 +16,8 @@ def put_info(username, hackathon, roles, looking, search, match, skills):
             "looking": looking,
             "search": search,
             "match": match,
-            "skills": skills}
+            "skills": skills,
+            "level": level}
 
     return data.update_one({"username": username}, {"$set": user}, upsert=True).acknowledged
 

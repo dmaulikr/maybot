@@ -5,3 +5,4 @@ env
 test/*
 *.pyc
 config.cfg
+dump
