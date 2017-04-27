@@ -9,26 +9,24 @@ We believe that MayBot has great potential to solve this problem and we can see 
 We can't wait to continue working on this project and connecting hackers across the world!
 
 ## How It Works
-1. Are you searching for a team or a team member? 
-2. Choose between Quick Search or Detailed Search.  
+1. Get Maybot by scanning this Kik Code!
+    <br /> <br />
+    <img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/kikcode.png" alt="Kik Code" width="300px"/>
+2. Are you searching for a team or a team member? 
+3. Choose between Quick Search or Detailed Search.  
     - Quick Search automatically pairs you with the best match
     - Detailed Search allows you to choose from a list of matches
     
       <img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/search.png" alt="Search" width="300px"/>
-3. Choose the roles that you are looking to fill.
+4. Choose the roles that you are looking to fill.
 
       <img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/fill_roles.png" alt="Search" width="300px"/>
-4. Choose more roles if you're looking to fill multiple positions.
+5. Choose more roles if you're looking to fill multiple positions.
 
       <img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/fill_more_roles.png" alt="Search" width="300px"/>
       
-5. Once you've been matched, you have the option to contact him or reject him!
+6. Once you've been matched, you have the option to contact or reject them!
 
       <img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/hookup.png" alt="Search" width="300px"/>
       
-6. Enjoy creating the dankest hackathon project!
-
-# Get MayBot
-Get Maybot by scanning this Kik Code!
-<br /> <br />
-<img src="https://github.com/theRoughCode/maybot/blob/master/screenshots/kikcode.png" alt="Kik Code" width="300px"/>
+7. Enjoy creating the dankest hackathon project!
